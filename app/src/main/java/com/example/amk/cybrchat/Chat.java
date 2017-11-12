@@ -44,8 +44,6 @@ public class Chat extends AppCompatActivity {
     private String chat_msg;
     private String chat_user;
     private DatabaseReference root;
-    private static byte[] ivBytes = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -71,16 +69,15 @@ public class Chat extends AppCompatActivity {
                 root.updateChildren(map);
 
                 //Encrypt message with AES 256
-                String key = "defaultkey123";
+                String key = "e8ffc7e56311679f12b6fc91aa77a5eb"; //key length need to be 32 long
+                byte[] ivBytes = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
                 byte[] keyBytes = key.getBytes(Charset.forName("UTF-8"));
-                Log.d("iv bytes length: ", String.valueOf(ivBytes.length));
                 String plainText = msg.getText().toString();
                 Log.d("message", plainText);
                 String base64Text;
                 byte[] cipherData = "CannotEncryptMsg".getBytes(Charset.forName("UTF-8"));
-                //AES256Cipher ownCipher = new AES256Cipher();
                 try {
-                    cipherData = AES256Cipher.encrypt(keyBytes, ivBytes, plainText.getBytes(Charset.forName("UTF-8")));
+                    cipherData = AES256Cipher.encrypt(ivBytes, keyBytes, plainText.getBytes(Charset.forName("UTF-8")));
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 } catch (NoSuchAlgorithmException e) {
@@ -125,7 +122,6 @@ public class Chat extends AppCompatActivity {
                 namemsgmap.put("na,e",user);
                 namemsgmap.put("msg",plainText);
                 //namemsgmap.put("msg",msg.getText().toString());
-
                 root_msg.updateChildren(namemsgmap);
 
             }

@@ -28,13 +28,11 @@ public class AES256Cipher {
             InvalidAlgorithmParameterException,
             IllegalBlockSizeException,
             BadPaddingException {
-
-        //problem here: iv bytes change to 13 for no reason
+        //Log.d("key length is ", String.valueOf(keyBytes.length));
         AlgorithmParameterSpec ivSpec = new IvParameterSpec(ivBytes);
         SecretKeySpec newKey = new SecretKeySpec(keyBytes, "AES");
         Cipher cipher = null;
         cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        Log.d("iv bytes length: ", String.valueOf(ivBytes.length));
         cipher.init(Cipher.ENCRYPT_MODE, newKey, ivSpec);
         return cipher.doFinal(textBytes);
     }
