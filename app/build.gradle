@@ -4,7 +4,7 @@ android {
     compileSdkVersion 26
     defaultConfig {
         applicationId "com.example.amk.cybrchat"
-        minSdkVersion 15
+        minSdkVersion 16
         targetSdkVersion 26
         versionCode 1
         versionName "1.0"
@@ -28,7 +28,7 @@ dependencies {
 
     compile 'com.google.firebase:firebase-database:9.0.2'
     compile 'com.google.firebase:firebase-core:9.0.2'
-
+    compile 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:1.0.7@aar'
 }
 
 apply plugin: 'com.google.gms.google-services'
