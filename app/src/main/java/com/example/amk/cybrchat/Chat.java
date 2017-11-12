@@ -1,9 +1,10 @@
 package com.example.amk.cybrchat;
 
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -16,9 +17,18 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 /**
  * Created by amk on 11/9/2017.
@@ -34,6 +44,7 @@ public class Chat extends AppCompatActivity {
     private String chat_msg;
     private String chat_user;
     private DatabaseReference root;
+    private static byte[] ivBytes = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
 
     @Override
@@ -45,9 +56,9 @@ public class Chat extends AppCompatActivity {
         room = getIntent().getExtras().get("room_name").toString();
         setTitle(room);
         //Buttons
-        send = (Button) findViewById(R.id.send);
-        msg = (EditText) findViewById(R.id.msg);
-        convo = (TextView) findViewById(R.id.convo);
+        send = findViewById(R.id.send);
+        msg = findViewById(R.id.msg);
+        convo = findViewById(R.id.convo);
 
         //Looking inside the first level of chat rooms which are messages
         root = FirebaseDatabase.getInstance().getReference().child(room);
@@ -59,10 +70,61 @@ public class Chat extends AppCompatActivity {
                 temp = root.push().getKey();
                 root.updateChildren(map);
 
+                //Encrypt message with AES 256
+                String key = "defaultkey123";
+                byte[] keyBytes = key.getBytes(Charset.forName("UTF-8"));
+                Log.d("iv bytes length: ", String.valueOf(ivBytes.length));
+                String plainText = msg.getText().toString();
+                Log.d("message", plainText);
+                String base64Text;
+                byte[] cipherData = "CannotEncryptMsg".getBytes(Charset.forName("UTF-8"));
+                //AES256Cipher ownCipher = new AES256Cipher();
+                try {
+                    cipherData = AES256Cipher.encrypt(keyBytes, ivBytes, plainText.getBytes(Charset.forName("UTF-8")));
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                } catch (NoSuchAlgorithmException e) {
+                    e.printStackTrace();
+                } catch (NoSuchPaddingException e) {
+                    e.printStackTrace();
+                } catch (InvalidKeyException e) {
+                    e.printStackTrace();
+                } catch (InvalidAlgorithmParameterException e) {
+                    e.printStackTrace();
+                } catch (IllegalBlockSizeException e) {
+                    e.printStackTrace();
+                } catch (BadPaddingException e) {
+                    e.printStackTrace();
+                }
+                base64Text = Base64.encodeToString(cipherData, Base64.DEFAULT);
+                Log.d("encrypt", base64Text);
+
+                /*Decrypt message with AES 256*/
+                try {
+                    cipherData = AES256Cipher.decrypt(ivBytes, keyBytes, Base64.decode(base64Text.getBytes(Charset.forName("UTF-8")), Base64.DEFAULT));
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                } catch (NoSuchAlgorithmException e) {
+                    e.printStackTrace();
+                } catch (NoSuchPaddingException e) {
+                    e.printStackTrace();
+                } catch (InvalidKeyException e) {
+                    e.printStackTrace();
+                } catch (InvalidAlgorithmParameterException e) {
+                    e.printStackTrace();
+                } catch (IllegalBlockSizeException e) {
+                    e.printStackTrace();
+                } catch (BadPaddingException e) {
+                    e.printStackTrace();
+                }
+                plainText = new String(cipherData, Charset.forName("UTF-8"));
+                Log.d("dcrypt", plainText);
+
                 DatabaseReference root_msg = root.child(temp);
                 Map<String,Object> namemsgmap = new HashMap<String, Object>();
                 namemsgmap.put("na,e",user);
-                namemsgmap.put("msg",msg.getText().toString());
+                namemsgmap.put("msg",plainText);
+                //namemsgmap.put("msg",msg.getText().toString());
 
                 root_msg.updateChildren(namemsgmap);
 
