@@ -44,6 +44,10 @@ public class Chat extends AppCompatActivity {
     private String chat_msg;
     private String chat_user;
     private DatabaseReference root;
+    String key = "e8ffc7e56311679f12b6fc91aa77a5eb"; //key length need to be 32 long
+    byte[] ivBytes = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    byte[] keyBytes = key.getBytes(Charset.forName("UTF-8"));
+    byte[] cipherData = "CannotEncryptMsg".getBytes(Charset.forName("UTF-8"));
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -69,13 +73,9 @@ public class Chat extends AppCompatActivity {
                 root.updateChildren(map);
 
                 //Encrypt message with AES 256
-                String key = "e8ffc7e56311679f12b6fc91aa77a5eb"; //key length need to be 32 long
-                byte[] ivBytes = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-                byte[] keyBytes = key.getBytes(Charset.forName("UTF-8"));
                 String plainText = msg.getText().toString();
                 Log.d("message", plainText);
                 String base64Text;
-                byte[] cipherData = "CannotEncryptMsg".getBytes(Charset.forName("UTF-8"));
                 try {
                     cipherData = AES256Cipher.encrypt(ivBytes, keyBytes, plainText.getBytes(Charset.forName("UTF-8")));
                 } catch (UnsupportedEncodingException e) {
@@ -96,31 +96,10 @@ public class Chat extends AppCompatActivity {
                 base64Text = Base64.encodeToString(cipherData, Base64.DEFAULT);
                 Log.d("encrypt", base64Text);
 
-                /*Decrypt message with AES 256*/
-                try {
-                    cipherData = AES256Cipher.decrypt(ivBytes, keyBytes, Base64.decode(base64Text.getBytes(Charset.forName("UTF-8")), Base64.DEFAULT));
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                } catch (NoSuchAlgorithmException e) {
-                    e.printStackTrace();
-                } catch (NoSuchPaddingException e) {
-                    e.printStackTrace();
-                } catch (InvalidKeyException e) {
-                    e.printStackTrace();
-                } catch (InvalidAlgorithmParameterException e) {
-                    e.printStackTrace();
-                } catch (IllegalBlockSizeException e) {
-                    e.printStackTrace();
-                } catch (BadPaddingException e) {
-                    e.printStackTrace();
-                }
-                plainText = new String(cipherData, Charset.forName("UTF-8"));
-                Log.d("dcrypt", plainText);
-
                 DatabaseReference root_msg = root.child(temp);
                 Map<String,Object> namemsgmap = new HashMap<String, Object>();
                 namemsgmap.put("na,e",user);
-                namemsgmap.put("msg",plainText);
+                namemsgmap.put("msg",base64Text);
                 //namemsgmap.put("msg",msg.getText().toString());
                 root_msg.updateChildren(namemsgmap);
 
@@ -161,7 +140,31 @@ public class Chat extends AppCompatActivity {
         while (i.hasNext()){
             chat_msg = (String) ((DataSnapshot)i.next()).getValue();
             chat_user = (String) ((DataSnapshot)i.next()).getValue();
-            convo.append(chat_user +" : " + chat_msg + " \n");
+
+            /*Decrypt message with AES 256*/
+            String encrypted = chat_msg.toString();
+            String plainText;
+            try {
+                cipherData = AES256Cipher.decrypt(ivBytes, keyBytes, Base64.decode(encrypted.getBytes(Charset.forName("UTF-8")), Base64.DEFAULT));
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            } catch (NoSuchPaddingException e) {
+                e.printStackTrace();
+            } catch (InvalidKeyException e) {
+                e.printStackTrace();
+            } catch (InvalidAlgorithmParameterException e) {
+                e.printStackTrace();
+            } catch (IllegalBlockSizeException e) {
+                e.printStackTrace();
+            } catch (BadPaddingException e) {
+                e.printStackTrace();
+            }
+            plainText = new String(cipherData, Charset.forName("UTF-8"));
+            Log.d("dcrypt", plainText);
+
+            convo.append(chat_user +" : " + plainText + " \n");
 
         }
     }
