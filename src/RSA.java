@@ -25,13 +25,13 @@ public class RSA {
 	{
 		KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
 		SecureRandom rand = new SecureRandom();
-		keyGen.initialize(1024, rand);
+		keyGen.initialize(2048, rand);
 		KeyPair generatedKeyPair = keyGen.genKeyPair();
 		savePublicKey(generatedKeyPair.getPublic());
 		savePrivateKey(generatedKeyPair.getPrivate());
 	}
 	
-	private PublicKey loadPublicKey() throws Exception 
+	public PublicKey loadPublicKey() throws Exception 
 	{
 		byte[] encodedPublicKey = rsapubkey;
 		KeyFactory keyFactory = KeyFactory.getInstance("RSA");
@@ -41,7 +41,7 @@ public class RSA {
 		return publicKey;
 	}
 	
-	private PrivateKey loadPrivateKey() throws Exception 
+	public PrivateKey loadPrivateKey() throws Exception 
 	{
 		byte[] encodedPrivateKey = rsaprikey;
 		KeyFactory keyFactory = KeyFactory.getInstance("RSA");
@@ -51,7 +51,7 @@ public class RSA {
 		return privateKey;
 	}
 	
-	public void savePublicKey(PublicKey key) throws Exception 
+	private void savePublicKey(PublicKey key) throws Exception 
 	{
 		X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(
 		key.getEncoded());
