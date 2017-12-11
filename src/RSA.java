@@ -12,16 +12,20 @@ import javax.crypto.Cipher;
 
 public class RSA {
 	
+	private byte[] rsapubkey;
+	private byte[] rsaprikey;
+	
 	public RSA()
 	{
-		
+		this.rsaprikey = new byte[32];
+		this.rsapubkey = new byte[32];
 	}
 	
 	public void generateKeyPair() throws Exception 
 	{
-		KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA/None/NoPadding", "BC");
+		KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
 		SecureRandom rand = new SecureRandom();
-		keyGen.initialize(256, rand);
+		keyGen.initialize(1024, rand);
 		KeyPair generatedKeyPair = keyGen.genKeyPair();
 		savePublicKey(generatedKeyPair.getPublic());
 		savePrivateKey(generatedKeyPair.getPrivate());
@@ -29,8 +33,7 @@ public class RSA {
 	
 	private PublicKey loadPublicKey() throws Exception 
 	{
-		byte[] encodedPublicKey = new byte[32];
-		//TODO: load encodedPublicKey from db
+		byte[] encodedPublicKey = rsapubkey;
 		KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 		X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(
 		encodedPublicKey);
@@ -40,8 +43,7 @@ public class RSA {
 	
 	private PrivateKey loadPrivateKey() throws Exception 
 	{
-		byte[] encodedPrivateKey = new byte[32];
-		//TODO: load encodedPrivateKey from db
+		byte[] encodedPrivateKey = rsaprikey;
 		KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 		PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(
 		encodedPrivateKey);
@@ -53,14 +55,14 @@ public class RSA {
 	{
 		X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(
 		key.getEncoded());
-		//TODO: save x509EncodedKeySpec.getEncoded() to db
+		rsapubkey = x509EncodedKeySpec.getEncoded();
 	}
 	
 	private void savePrivateKey(PrivateKey key) throws Exception 
 	{
 		PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(
 		key.getEncoded());
-		//TODO: save pkcs8EncodedKeySpec.getEncoded() to db
+		rsaprikey = pkcs8EncodedKeySpec.getEncoded();
 	}
 	
 	public byte[] encrypt(byte[] msg) throws Exception
